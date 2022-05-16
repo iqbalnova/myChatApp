@@ -9,7 +9,7 @@ import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import {login, google, facebook, twitter} from '../../assets/images';
 
-export default function Login() {
+export default function Login({navigation}) {
   const [eyes, setEyes] = useState('eye-closed');
   const [hiddenPass, setHiddenPass] = useState(true);
   return (
