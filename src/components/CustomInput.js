@@ -4,9 +4,10 @@ import {View, Text, TouchableOpacity, TextInput} from 'react-native';
 export default function CustomInput({
   label,
   icon,
+  iconPass,
   inputType,
   keyboardType,
-  fieldButtonLabel,
+  securePass,
   fieldButtonFunction,
 }) {
   return (
@@ -24,7 +25,7 @@ export default function CustomInput({
           placeholder={label}
           keyboardType={keyboardType}
           style={{flex: 1, paddingVertical: 0}}
-          secureTextEntry={true}
+          secureTextEntry={securePass}
         />
       ) : (
         <TextInput
@@ -34,9 +35,7 @@ export default function CustomInput({
         />
       )}
       <TouchableOpacity onPress={fieldButtonFunction}>
-        <Text style={{color: '#AD40AF', fontWeight: '700'}}>
-          {fieldButtonLabel}
-        </Text>
+        {iconPass}
       </TouchableOpacity>
     </View>
   );
