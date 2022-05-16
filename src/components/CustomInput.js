@@ -9,6 +9,7 @@ export default function CustomInput({
   keyboardType,
   securePass,
   fieldButtonFunction,
+  onChange,
 }) {
   return (
     <View
@@ -26,11 +27,13 @@ export default function CustomInput({
           keyboardType={keyboardType}
           style={{flex: 1, paddingVertical: 0}}
           secureTextEntry={securePass}
+          onChangeText={onChange}
         />
       ) : (
         <TextInput
           placeholder={label}
           keyboardType={keyboardType}
+          onChangeText={onChange}
           style={{flex: 1, paddingVertical: 0}}
         />
       )}
