@@ -12,6 +12,11 @@ import {login, google, facebook, twitter} from '../../assets/images';
 export default function Login({navigation}) {
   const [eyes, setEyes] = useState('eye-closed');
   const [hiddenPass, setHiddenPass] = useState(true);
+  const [email, setEmail] = useState('');
+
+  const regexEmail =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
   return (
     <SafeAreaView style={{flex: 1, justifyContent: 'center'}}>
       <View style={{paddingHorizontal: 25}}>
@@ -41,6 +46,7 @@ export default function Login({navigation}) {
             />
           }
           keyboardType="email-address"
+          onChange={text => setEmail(text)}
         />
 
         <CustomInput
