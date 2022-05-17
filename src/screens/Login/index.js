@@ -80,7 +80,12 @@ export default function Login({navigation}) {
           }}
         />
 
-        <CustomButton label={'Login'} onPress={() => {}} />
+        <CustomButton
+          label={'Login'}
+          onPress={() => {
+            navigation.navigate('Main');
+          }}
+        />
 
         <Text style={{textAlign: 'center', color: '#666', marginBottom: 30}}>
           Or, login with ...
