@@ -1,5 +1,12 @@
-import React, {useState} from 'react';
-import {ScrollView, View, Text, Image, TouchableOpacity} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  ScrollView,
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -10,8 +17,111 @@ import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import {register, google, facebook, twitter} from '../../assets/images';
 
+import ImageCropPicker from 'react-native-image-crop-picker';
+
+// Kebutuhan firebase
+import authProvider from '@react-native-firebase/auth';
+import messagingProvider from '@react-native-firebase/messaging';
+import {myDb} from '../../helpers/DB';
+
+const auth = authProvider();
+const messaging = messagingProvider();
+
 export default function Register({navigation}) {
-  const [coba, setCoba] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [disable, setDisable] = useState(false);
+
+  // button upload avatar
+  const chooseAvatar = async () => {
+    await ImageCropPicker.openPicker({
+      width: 400,
+      height: 400,
+      cropping: true,
+    })
+      .then(image => {
+        handleDataUser('avatar', image.path);
+      })
+      .catch(err => console.log(err));
+  };
+
+  // Data register user yg dibutuhkan
+  const [dataUser, setDataUser] = useState({
+    username: '',
+    email: '',
+    password: '',
+    bio: '',
+    avatar:
+      'https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_960_720.png',
+  });
+
+  // Dinamis state
+  const handleDataUser = (field, value) => {
+    setDataUser(prevState => {
+      prevState[field] = value;
+      return {
+        ...prevState,
+      };
+    });
+  };
+
+  // For validation inputan kosong
+  const regisValidation = () => {
+    const {password, username, email, bio} = dataUser;
+    if (!username || !email || !password || !bio) {
+      setDisable(true);
+    } else {
+      setDisable(false);
+    }
+  };
+
+  useEffect(() => {
+    regisValidation();
+  }, [regisValidation]);
+
+  const regisWithEmail = async () => {
+    try {
+      setLoading(true);
+      const res = await auth.createUserWithEmailAndPassword(
+        dataUser.email,
+        dataUser.password,
+      );
+      console.log(res);
+      if ('email' in res.user && res.user.email) {
+        await auth.currentUser.updateProfile({
+          displayName: dataUser.username,
+        });
+        const token = await messaging.getToken();
+
+        if (token) {
+          const payload = {
+            displayName: dataUser.username,
+            email: res.user.email,
+            phoneNumber: res.user.phoneNumber,
+            photoURL: dataUser.avatar,
+            bio: dataUser.bio,
+            contact: [],
+            roomChat: [],
+            _id: res.user.uid,
+            notifToken: token,
+          };
+          await myDb.ref(`users/${res.user.uid}`).set(payload);
+          // dispatch(setDataUser(payload));
+          navigation.navigate('Login');
+        }
+      }
+    } catch (error) {
+      if (error.code === 'auth/email-already-in-use') {
+        Alert.alert('That email address is already in use!');
+      }
+
+      if (error.code === 'auth/invalid-email') {
+        Alert.alert('That email address is invalid!');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <ScrollView style={{flex: 1}}>
       <View style={{paddingHorizontal: 25}}>
@@ -41,7 +151,7 @@ export default function Register({navigation}) {
             />
           }
           keyboardType="email-address"
-          onChange={text => setCoba(text)}
+          onChange={text => handleDataUser('username', text)}
         />
 
         <CustomInput
@@ -55,6 +165,7 @@ export default function Register({navigation}) {
             />
           }
           keyboardType="email-address"
+          onChange={text => handleDataUser('email', text)}
         />
 
         <CustomInput
@@ -69,6 +180,7 @@ export default function Register({navigation}) {
             />
           }
           inputType="password"
+          onChange={text => handleDataUser('password', text)}
         />
 
         <CustomInput
@@ -82,6 +194,7 @@ export default function Register({navigation}) {
             />
           }
           keyboardType="email-address"
+          onChange={text => handleDataUser('bio', text)}
         />
 
         <View
@@ -100,7 +213,7 @@ export default function Register({navigation}) {
             style={{marginRight: 5}}
           />
           <TouchableOpacity
-            onPress={() => console.log()}
+            onPress={() => chooseAvatar()}
             style={{
               backgroundColor: '#ec995e',
               paddingVertical: 3,
@@ -112,8 +225,14 @@ export default function Register({navigation}) {
           </TouchableOpacity>
           <Text style={{marginLeft: 10, color: '#ccc'}}>(Optional)</Text>
         </View>
-
-        <CustomButton label={'Register'} onPress={() => {}} />
+        {/* button register */}
+        <CustomButton
+          label={'Register'}
+          isDisable={disable}
+          onPress={() => {
+            regisWithEmail();
+          }}
+        />
 
         <Text style={{textAlign: 'center', color: '#666', marginBottom: 30}}>
           Or, register with ...
