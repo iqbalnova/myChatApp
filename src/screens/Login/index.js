@@ -1,5 +1,12 @@
-import React, {useState} from 'react';
-import {SafeAreaView, View, Text, Image, TouchableOpacity} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -9,13 +16,89 @@ import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import {login, google, facebook, twitter} from '../../assets/images';
 
+// Kebutuhan firebase
+import authProvider from '@react-native-firebase/auth';
+import messagingProvider from '@react-native-firebase/messaging';
+import {myDb} from '../../helpers/DB';
+
+const auth = authProvider();
+const messaging = messagingProvider();
+
 export default function Login({navigation}) {
   const [eyes, setEyes] = useState('eye-closed');
   const [hiddenPass, setHiddenPass] = useState(true);
-  const [email, setEmail] = useState('');
+  const [disable, setDisable] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const regexEmail =
-    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  // Data register user yg dibutuhkan
+  const [dataUser, setDataUser] = useState({
+    email: '',
+    password: '',
+  });
+
+  // Dinamis state
+  const handleDataUser = (field, value) => {
+    setDataUser(prevState => {
+      prevState[field] = value;
+      return {
+        ...prevState,
+      };
+    });
+  };
+
+  // For validation inputan kosong
+  const regisValidation = () => {
+    const {password, email} = dataUser;
+    if (!email || !password) {
+      setDisable(true);
+    } else {
+      setDisable(false);
+    }
+  };
+
+  useEffect(() => {
+    regisValidation();
+  }, [regisValidation]);
+
+  // Login Function
+  const signInnWithEmail = async () => {
+    try {
+      setLoading(true);
+      const res = await auth.signInWithEmailAndPassword(
+        dataUser.email,
+        dataUser.password,
+      );
+
+      const token = await messaging.getToken();
+
+      if (token) {
+        let isUpdate = false;
+        await myDb.ref(`users/${res.user.uid}`).update({
+          notifToken: token,
+        });
+        isUpdate = true;
+
+        if (isUpdate) {
+          const results = await myDb.ref(`users/${res.user.uid}`).once('value');
+          if (results.val()) {
+            // dispatch(setDataUser(results.val()));
+            console.log(results.val());
+            navigation.navigate('Main');
+          }
+        }
+      }
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        Alert.alert('Oops', 'Email or Password is wrong, please try again');
+      }
+
+      if (error.code === 'auth/invalid-email') {
+        Alert.alert('Oops', 'Email is not valid');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={{flex: 1, justifyContent: 'center'}}>
@@ -46,7 +129,7 @@ export default function Login({navigation}) {
             />
           }
           keyboardType="email-address"
-          onChange={text => setEmail(text)}
+          onChange={text => handleDataUser('email', text)}
         />
 
         <CustomInput
@@ -78,12 +161,14 @@ export default function Login({navigation}) {
               setHiddenPass(false);
             }
           }}
+          onChange={text => handleDataUser('password', text)}
         />
-
+        {/* Button Login */}
         <CustomButton
           label={'Login'}
+          isDisable={disable}
           onPress={() => {
-            navigation.navigate('Main');
+            signInnWithEmail();
           }}
         />
 
