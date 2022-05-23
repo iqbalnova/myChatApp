@@ -22,6 +22,10 @@ import authProvider from '@react-native-firebase/auth';
 import messagingProvider from '@react-native-firebase/messaging';
 import {myDb} from '../../helpers/DB';
 
+// Redux
+import {useDispatch} from 'react-redux';
+import {setUser} from './redux/action';
+
 const auth = authProvider();
 const messaging = messagingProvider();
 
@@ -30,6 +34,8 @@ export default function Login({navigation}) {
   const [hiddenPass, setHiddenPass] = useState(true);
   const [disable, setDisable] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
 
   // Data register user yg dibutuhkan
   const [dataUser, setDataUser] = useState({
@@ -82,8 +88,7 @@ export default function Login({navigation}) {
         if (isUpdate) {
           const results = await myDb.ref(`users/${res.user.uid}`).once('value');
           if (results.val()) {
-            // dispatch(setDataUser(results.val()));
-            console.log(results.val());
+            dispatch(setUser(results.val()));
             navigation.navigate('Main');
           }
         }
