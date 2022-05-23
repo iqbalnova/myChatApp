@@ -2,7 +2,7 @@ import {View, Text, TextInput, TouchableOpacity} from 'react-native';
 import React from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-export default function HeaderChat() {
+export default function HeaderChat({onChangeText, value}) {
   return (
     <View
       style={{
@@ -33,7 +33,11 @@ export default function HeaderChat() {
           }}>
           <Ionicons name="ios-search-outline" size={20} />
           <View style={{flex: 1}}>
-            <TextInput placeholder="Cari" />
+            <TextInput
+              placeholder="Cari"
+              onChangeText={onChangeText}
+              value={value}
+            />
           </View>
         </View>
         <View
