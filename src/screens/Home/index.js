@@ -1,37 +1,56 @@
-import React, {useState, useCallback, useEffect} from 'react';
-import {GiftedChat} from 'react-native-gifted-chat';
+import {View, Text, StatusBar, FlatList} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import CardChat from '../../components/CardChat';
+import HeaderChat from '../../components/HeaderChat';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {myDb} from '../../helpers/DB';
+import {useSelector} from 'react-redux';
 
-export default Home = () => {
-  const [messages, setMessages] = useState([]);
+export default function Home() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const {_user} = useSelector(state => state.login);
+
+  const getAllData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await myDb.ref('/users').once('value');
+      const userList = Object.values(res.val()).filter(
+        val => val._id !== _user._id,
+      );
+      setData(userList);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [_user.email]);
 
   useEffect(() => {
-    setMessages([
-      {
-        _id: 1,
-        text: 'Hello developer',
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: 'React Native',
-          avatar: 'https://placeimg.com/140/140/any',
-        },
-      },
-    ]);
-  }, []);
+    getAllData();
+  }, [getAllData]);
 
-  const onSend = useCallback((messages = []) => {
-    setMessages(previousMessages =>
-      GiftedChat.append(previousMessages, messages),
+  const RenderItem = ({item = {displayName: '', email: '', photoURL: ''}}) => {
+    const {displayName, email, photoURL} = item;
+    return (
+      <CardChat name={displayName} email={email} photo={photoURL} {...item} />
     );
-  }, []);
-
+  };
   return (
-    <GiftedChat
-      messages={messages}
-      onSend={messages => onSend(messages)}
-      user={{
-        _id: 1,
-      }}
-    />
+    <SafeAreaView>
+      <StatusBar hidden />
+      <FlatList
+        data={data}
+        keyExtractor={item => item._id}
+        renderItem={RenderItem}
+        // ListEmptyComponent={() => {
+        //   return <EmptyComponent search />;
+        // }}
+        ListHeaderComponent={() => {
+          return <HeaderChat />;
+        }}
+      />
+    </SafeAreaView>
   );
-};
+}
