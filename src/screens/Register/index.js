@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -106,16 +107,25 @@ export default function Register({navigation}) {
           };
           await myDb.ref(`users/${res.user.uid}`).set(payload);
           // dispatch(setDataUser(payload));
-          navigation.navigate('Login');
+          Alert.alert('Success!', 'Register anda berhasil, silahkan login', [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.navigate('Login');
+              },
+            },
+          ]);
         }
       }
     } catch (error) {
       if (error.code === 'auth/email-already-in-use') {
         Alert.alert('That email address is already in use!');
       }
-
       if (error.code === 'auth/invalid-email') {
         Alert.alert('That email address is invalid!');
+      }
+      if (error.code === 'auth/weak-password') {
+        Alert.alert('Password should be at least 6 characters');
       }
     } finally {
       setLoading(false);
@@ -226,14 +236,17 @@ export default function Register({navigation}) {
           <Text style={{marginLeft: 10, color: '#ccc'}}>(Optional)</Text>
         </View>
         {/* button register */}
-        <CustomButton
-          label={'Register'}
-          isDisable={disable}
-          onPress={() => {
-            regisWithEmail();
-          }}
-        />
-
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <CustomButton
+            label={'Register'}
+            isDisable={disable}
+            onPress={() => {
+              regisWithEmail();
+            }}
+          />
+        )}
         <Text style={{textAlign: 'center', color: '#666', marginBottom: 30}}>
           Or, register with ...
         </Text>

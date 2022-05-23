@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -95,6 +96,10 @@ export default function Login({navigation}) {
       if (error.code === 'auth/invalid-email') {
         Alert.alert('Oops', 'Email is not valid');
       }
+      if (error.code === 'auth/wrong-password') {
+        Alert.alert('Oops', 'Email or Password is wrong, please try again');
+      }
+      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -164,14 +169,17 @@ export default function Login({navigation}) {
           onChange={text => handleDataUser('password', text)}
         />
         {/* Button Login */}
-        <CustomButton
-          label={'Login'}
-          isDisable={disable}
-          onPress={() => {
-            signInnWithEmail();
-          }}
-        />
-
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <CustomButton
+            label={'Login'}
+            isDisable={disable}
+            onPress={() => {
+              signInnWithEmail();
+            }}
+          />
+        )}
         <Text style={{textAlign: 'center', color: '#666', marginBottom: 30}}>
           Or, login with ...
         </Text>
