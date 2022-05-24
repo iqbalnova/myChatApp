@@ -4,7 +4,8 @@ import CardChat from '../../components/CardChat';
 import HeaderChat from '../../components/HeaderChat';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {myDb} from '../../helpers/DB';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import {setChoosenUser} from './redux/action';
 
 export default function Home({navigation}) {
   const [data, setData] = useState([]);
@@ -13,6 +14,9 @@ export default function Home({navigation}) {
   const [search, setSearch] = useState('');
 
   const {_user} = useSelector(state => state.login);
+  const {_choosenUser} = useSelector(state => state.home);
+
+  const dispatch = useDispatch();
 
   const getAllData = useCallback(async () => {
     setLoading(true);
@@ -32,8 +36,14 @@ export default function Home({navigation}) {
 
   useEffect(() => {
     getAllData();
-    console.log(data, 'ini data');
+    console.log(data, 'ini data db');
+    console.log(_user, 'ini data user');
   }, [getAllData]);
+
+  const selectedUser = item => {
+    dispatch(setChoosenUser(item));
+    console.log(_choosenUser, 'ini data choosen');
+  };
 
   const RenderItem = ({item}) => {
     const {displayName, email, photoURL} = item;
@@ -42,20 +52,17 @@ export default function Home({navigation}) {
         name={displayName}
         email={email}
         photo={photoURL}
-        onPress={() => navigation.navigate('Chat')}
+        {...item}
+        onPress={() => selectedUser(item)}
       />
     );
   };
 
   const searchFilter = text => {
     if (text) {
-      const newData = data.filter(item => {
-        const itemData = item.displayName
-          ? item.displayName.toUpperCase()
-          : ''.toUpperCase();
-        const textData = text.toUpperCase();
-        return itemData.indexOf(textData) > -1;
-      });
+      const newData = data.filter(i =>
+        i.displayName.toUpperCase().includes(text.toUpperCase()),
+      );
       setFilterData(newData);
       setSearch(text);
     } else {
@@ -63,8 +70,6 @@ export default function Home({navigation}) {
       setSearch(text);
     }
   };
-
-  const coba = () => {};
 
   return (
     <SafeAreaView>

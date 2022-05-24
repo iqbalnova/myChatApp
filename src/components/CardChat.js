@@ -2,9 +2,9 @@ import {View, Text, TouchableOpacity, Image} from 'react-native';
 import React from 'react';
 
 export default function CardChat(props) {
-  const {name, email, photo} = props;
+  const {name, email, photo, onPress} = props;
   return (
-    <TouchableOpacity>
+    <TouchableOpacity onPress={onPress}>
       <View
         style={{
           flexDirection: 'row',

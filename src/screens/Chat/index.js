@@ -1,7 +1,7 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import {GiftedChat} from 'react-native-gifted-chat';
 
-export default Chat = () => {
+export default function Chat() {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
@@ -34,4 +34,4 @@ export default Chat = () => {
       }}
     />
   );
-};
+}
