@@ -6,20 +6,20 @@ import {TouchableOpacity} from 'react-native-gesture-handler';
 import {useDispatch} from 'react-redux';
 import {setUser} from '../Login/redux/action';
 import auth from '@react-native-firebase/auth';
+import {setChoosenUser} from '../Home/redux/action';
 
 export default function Profile({navigation}) {
   const dispatch = useDispatch();
   const signOut = async () => {
     try {
-      auth()
+      await auth()
         .signOut()
         .then(() => {
+          dispatch(setUser({}));
+          dispatch(setChoosenUser({}));
           navigation.navigate('Login');
           console.log('out');
         });
-
-      dispatch(setUser({}));
-      navigation.navigate('Login');
     } catch (error) {
       console.error(error);
     }

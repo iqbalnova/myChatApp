@@ -2,7 +2,7 @@ import {View, Text, TextInput, TouchableOpacity} from 'react-native';
 import React from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-export default function HeaderChat({onChangeText, value}) {
+export default function HeaderChat({onChangeText, value, title}) {
   return (
     <View
       style={{
@@ -18,7 +18,7 @@ export default function HeaderChat({onChangeText, value}) {
           paddingBottom: 10,
         }}>
         <Text style={{fontSize: 26, fontWeight: 'bold', color: 'black'}}>
-          Chat
+          {title}
         </Text>
         <View
           style={{

@@ -1,10 +1,12 @@
-import {View, Text} from 'react-native';
+import {View, LogBox} from 'react-native';
 import React, {useEffect} from 'react';
 import SplashScreen from 'react-native-splash-screen';
 import Root from './src/routes/Root';
 import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/integration/react';
 import {persistor, store} from './src/redux/store';
+
+LogBox.ignoreAllLogs();
 
 export default function App() {
   useEffect(() => {

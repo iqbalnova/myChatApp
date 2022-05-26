@@ -1,4 +1,4 @@
-import {View, Text, StatusBar, FlatList} from 'react-native';
+import {Alert, RefreshControl, StatusBar, FlatList} from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
 import CardChat from '../../components/CardChat';
 import HeaderChat from '../../components/HeaderChat';
@@ -6,6 +6,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {myDb} from '../../helpers/DB';
 import {useDispatch, useSelector} from 'react-redux';
 import {setChoosenUser} from './redux/action';
+import {generateRoomId} from '../../helpers/generateRoomId';
 
 export default function Home({navigation}) {
   const [data, setData] = useState([]);
@@ -13,8 +14,18 @@ export default function Home({navigation}) {
   const [filterData, setFilterData] = useState([]);
   const [search, setSearch] = useState('');
 
+  const [contactList, setContactList] = useState([]);
+
   const {_user} = useSelector(state => state.login);
   const {_choosenUser} = useSelector(state => state.home);
+
+  const [refresh, setRefresh] = useState(false);
+
+  const onRefresh = () => {
+    setRefresh(true);
+    getAllData();
+    setRefresh(false);
+  };
 
   const dispatch = useDispatch();
 
@@ -27,6 +38,15 @@ export default function Home({navigation}) {
       );
       setData(userList);
       setFilterData(userList);
+      console.log('INI USER LIST :  ', userList);
+      myDb.ref(`contactRooms/${_user.displayName}`).on('value', snapshot => {
+        const res = snapshot.val();
+        if (res && res.contact) {
+          setContactList(res.contact);
+        } else {
+          setContactList([]);
+        }
+      });
     } catch (error) {
       console.log(error);
     } finally {
@@ -36,13 +56,56 @@ export default function Home({navigation}) {
 
   useEffect(() => {
     getAllData();
-    console.log(data, 'ini data db');
-    console.log(_user, 'ini data user');
+    return () => {
+      setData([]); // This worked for me
+      setFilterData([]);
+    };
   }, [getAllData]);
 
   const selectedUser = item => {
-    dispatch(setChoosenUser(item));
-    console.log(_choosenUser, 'ini data choosen');
+    newContact(item);
+    console.log('++++++ ', _choosenUser);
+  };
+
+  const newContact = async item => {
+    try {
+      //check friends
+
+      const fren = await myDb.ref(`chatRooms/`).once('value');
+      const dataFren = fren.val();
+      console.log('INI DATAFREN ', dataFren);
+
+      // Create new chatroom
+      await myDb
+        .ref(`chatRooms/${generateRoomId(_user._id, _choosenUser._id)}`)
+        .update({
+          firstUser: _user.displayName,
+          secondUser: item.displayName,
+        });
+
+      // add contact
+      await myDb.ref(`contactRooms/${_user.displayName}`).update({
+        contact: [...contactList, {...item}],
+      });
+      const friendContact = await myDb
+        .ref(`contactRooms/${item.displayName}`)
+        .once('value');
+      console.log(friendContact.val());
+      if (friendContact.val()) {
+        await myDb.ref(`contactRooms/${item.displayName}`).update({
+          contact: [...friendContact.val().contact, {..._user}],
+        });
+      } else {
+        await myDb.ref(`contactRooms/${item.displayName}`).update({
+          contact: [{..._user}],
+        });
+      }
+
+      dispatch(setChoosenUser(item));
+      navigation.navigate('Chat');
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const RenderItem = ({item}) => {
@@ -53,7 +116,17 @@ export default function Home({navigation}) {
         email={email}
         photo={photoURL}
         {...item}
-        onPress={() => selectedUser(item)}
+        onPress={() => {
+          Alert.alert('Add Friend', 'Apakah anda yakin untuk add friend ?', [
+            {text: 'Cancel', onPress: () => console.log('Cancel Pressed!')},
+            {
+              text: 'OK',
+              onPress: () => {
+                selectedUser(item);
+              },
+            },
+          ]);
+        }}
       />
     );
   };
@@ -75,6 +148,9 @@ export default function Home({navigation}) {
     <SafeAreaView>
       <StatusBar hidden />
       <FlatList
+        refreshControl={
+          <RefreshControl refreshing={refresh} onRefresh={onRefresh} />
+        }
         data={filterData}
         keyExtractor={item => item._id}
         renderItem={RenderItem}
@@ -85,6 +161,7 @@ export default function Home({navigation}) {
           return (
             <HeaderChat
               value={search}
+              title="All User"
               onChangeText={text => searchFilter(text)}
             />
           );

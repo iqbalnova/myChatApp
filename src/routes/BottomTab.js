@@ -4,13 +4,16 @@ import Profile from '../screens/Profile';
 import React from 'react';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+
+import Dashboard from '../screens/Dashboard';
 
 const Tab = createBottomTabNavigator();
 
 const BottomTab = () => {
   return (
     <Tab.Navigator
-      initialRouteName="Home"
+      initialRouteName="Dashboard"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
@@ -29,6 +32,16 @@ const BottomTab = () => {
       <Tab.Screen
         name="Home"
         component={Home}
+        options={{
+          tabBarIcon: ({color}) => {
+            return <AntDesign name="contacts" size={27} color={color} />;
+          },
+        }}
+      />
+
+      <Tab.Screen
+        name="Dashboard"
+        component={Dashboard}
         options={{
           tabBarIcon: ({color}) => {
             return (
