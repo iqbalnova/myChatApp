@@ -32,9 +32,6 @@ export default function Dashboard({navigation}) {
 
   useEffect(() => {
     getAllData();
-    return () => {
-      setData([]); // This worked for me
-    };
   }, [getAllData]);
 
   const selectedUser = item => {
@@ -59,12 +56,11 @@ export default function Dashboard({navigation}) {
 
   const onRefresh = () => {
     setRefresh(true);
-    setData([]);
     getAllData();
-
     setRefresh(false);
   };
 
+  console.log('INI DATA : ', data);
   return (
     <SafeAreaView>
       <StatusBar hidden />
@@ -82,7 +78,7 @@ export default function Dashboard({navigation}) {
           return (
             <HeaderChat
               title="Chat"
-              onChangeText={text => searchFilter(text)}
+              // onChangeText={text => searchFilter(text)}
             />
           );
         }}

@@ -7,6 +7,7 @@ import {myDb} from '../../helpers/DB';
 import {useDispatch, useSelector} from 'react-redux';
 import {setChoosenUser} from './redux/action';
 import {generateRoomId} from '../../helpers/generateRoomId';
+import EmptyComponent from '../../components/EmptyComponent';
 
 export default function Home({navigation}) {
   const [data, setData] = useState([]);
@@ -154,9 +155,9 @@ export default function Home({navigation}) {
         data={filterData}
         keyExtractor={item => item._id}
         renderItem={RenderItem}
-        // ListEmptyComponent={() => {
-        //   return <EmptyComponent search />;
-        // }}
+        ListEmptyComponent={() => {
+          return <EmptyComponent />;
+        }}
         ListHeaderComponent={() => {
           return (
             <HeaderChat
