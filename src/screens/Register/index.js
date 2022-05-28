@@ -24,6 +24,7 @@ import ImageCropPicker from 'react-native-image-crop-picker';
 import authProvider from '@react-native-firebase/auth';
 import messagingProvider from '@react-native-firebase/messaging';
 import {myDb} from '../../helpers/DB';
+import storage from '@react-native-firebase/storage';
 
 const auth = authProvider();
 const messaging = messagingProvider();
@@ -31,6 +32,19 @@ const messaging = messagingProvider();
 export default function Register({navigation}) {
   const [loading, setLoading] = useState(false);
   const [disable, setDisable] = useState(false);
+  const [fileName, setFileName] = useState('');
+  const [successImg, setSuccessImg] = useState(false);
+
+  const sendFireStorage = async () => {
+    const uploadUri = dataUser.avatar;
+    let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
+    setFileName(filename);
+    try {
+      await storage().ref(`/images/${fileName}`).putFile(uploadUri);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   // button upload avatar
   const chooseAvatar = async () => {
@@ -41,6 +55,7 @@ export default function Register({navigation}) {
     })
       .then(image => {
         handleDataUser('avatar', image.path);
+        setSuccessImg(true);
       })
       .catch(err => console.log(err));
   };
@@ -82,6 +97,12 @@ export default function Register({navigation}) {
   const regisWithEmail = async () => {
     try {
       setLoading(true);
+      // upload photo to firebase storage first
+      sendFireStorage();
+      // Then download from storage
+      const url = await storage().ref(`images/${fileName}`).getDownloadURL();
+      console.log(url);
+      // Register to firebase auth
       const res = await auth.createUserWithEmailAndPassword(
         dataUser.email,
         dataUser.password,
@@ -98,7 +119,7 @@ export default function Register({navigation}) {
             displayName: dataUser.username,
             email: res.user.email,
             phoneNumber: res.user.phoneNumber,
-            photoURL: dataUser.avatar,
+            photoURL: url,
             bio: dataUser.bio,
             contact: [],
             roomChat: [],
@@ -233,7 +254,14 @@ export default function Register({navigation}) {
             }}>
             <Text style={{color: '#fff'}}>Upload Avatar</Text>
           </TouchableOpacity>
-          <Text style={{marginLeft: 10, color: '#ccc'}}>(Optional)</Text>
+          <Text style={{marginHorizontal: 10, color: '#ccc'}}>(Optional)</Text>
+          {successImg ? (
+            <Ionicons
+              name="ios-checkmark-circle-sharp"
+              size={26}
+              color="#56d66c"
+            />
+          ) : null}
         </View>
         {/* button register */}
         {loading ? (
