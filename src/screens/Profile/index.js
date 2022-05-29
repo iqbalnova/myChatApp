@@ -15,8 +15,6 @@ export default function Profile({navigation}) {
       await auth()
         .signOut()
         .then(() => {
-          dispatch(setUser({}));
-          dispatch(setChoosenUser({}));
           navigation.navigate('Login');
           console.log('out');
         });
@@ -48,7 +46,13 @@ export default function Profile({navigation}) {
             {
               text: 'OK',
               onPress: () => {
-                signOut();
+                let isOut = true;
+                dispatch(setUser({}));
+                dispatch(setChoosenUser({}));
+                isOut = false;
+                if (!isOut) {
+                  signOut();
+                }
               },
             },
           ])

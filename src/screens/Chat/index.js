@@ -12,6 +12,8 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import {generateRoomId} from '../../helpers/generateRoomId';
+import {fcmUrl, servertoken} from '../../helpers/API';
+import axios from 'axios';
 
 export default function Chat({navigation}) {
   const [user, setUser] = useState({messages: []});
@@ -46,8 +48,9 @@ export default function Chat({navigation}) {
   }, [createIntialData]);
 
   const onSend = useCallback(
-    (sendedMessage = []) => {
-      myDb
+    async (sendedMessage = []) => {
+      let isUpdating = true;
+      await myDb
         .ref(`chatRooms/${generateRoomId(_user._id, _choosenUser._id)}`)
         .update({
           messages: [
@@ -60,6 +63,27 @@ export default function Chat({navigation}) {
             },
           ],
         });
+
+      isUpdating = false;
+      if (!isUpdating) {
+        const body = {
+          to: _choosenUser.notifToken,
+          notification: {
+            body: sendedMessage[0].text,
+            title: `New Message from ${_user.displayName}`,
+          },
+          data: {
+            body: sendedMessage[0].text,
+            title: `New Messages from ${_user.displayName}`,
+          },
+        };
+        await axios.post(fcmUrl, body, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'key=' + servertoken,
+          },
+        });
+      }
     },
 
     [

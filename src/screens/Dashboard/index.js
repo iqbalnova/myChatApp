@@ -12,6 +12,7 @@ export default function Dashboard({navigation}) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const {_user} = useSelector(state => state.login);
+  const {_choosenUser} = useSelector(state => state.home);
 
   const dispatch = useDispatch();
 
@@ -60,7 +61,8 @@ export default function Dashboard({navigation}) {
     setRefresh(false);
   };
 
-  console.log('INI DATA : ', data);
+  console.log('INI DATA User: ', _user);
+  console.log('INI DATA Choosen: ', _choosenUser);
   return (
     <SafeAreaView>
       <StatusBar hidden />
